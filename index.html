@@ -69,6 +69,27 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        #scriptContent {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            display: none;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        #copyBtn {
+            background-color: #007bff;
+            display: none;
+        }
+        #copyBtn:hover {
+            background-color: #0069d9;
+        }
     </style>
 </head>
 <body>
@@ -78,41 +99,52 @@
             <label for="secretKey">Enter Ding:</label>
             <input type="password" id="secretKey" placeholder="Enter your Ding">
         </div>
-        <button id="submitBtn">Verify & Copy Content</button>
+        <div class="button-group">
+            <button id="submitBtn">Verify</button>
+            <button id="copyBtn">Copy Content</button>
+        </div>
         <div id="status"></div>
+        <pre id="scriptContent"></pre>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const secretKeyInput = document.getElementById('secretKey');
             const submitBtn = document.getElementById('submitBtn');
+            const copyBtn = document.getElementById('copyBtn');
             const statusDiv = document.getElementById('status');
+            const scriptContentDiv = document.getElementById('scriptContent');
             
             // Base64 encoded values
             const encodedKey = 'YXNobGV5'; // 
-            const encodedUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9yZW1vdGVzY3JpcHRsb2FkZXIudHh0'; // URL
+            const encodedUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9yZW1vdGVzY3JpcHRsb2FkZXIudHh0'; // 
+            const wrongPasswordUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9hdmF0aWxsYS50eHQ='; // 
             
             let scriptContent = '';
+            let wrongPasswordContent = '';
 
-            // Decode the URL
+            // Decode the URLs
             const decodedUrl = atob(encodedUrl);
+            const decodedWrongUrl = atob(wrongPasswordUrl);
 
-            // Fetch the remote script when the page loads
-            fetch(decodedUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
+            // Fetch both scripts when the page loads
+            Promise.all([
+                fetch(decodedUrl).then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                }),
+                fetch(decodedWrongUrl).then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
                     return response.text();
                 })
-                .then(data => {
-                    scriptContent = data;
-                })
-                .catch(error => {
-                    statusDiv.textContent = 'Error loading content: ' + error.message;
-                    statusDiv.className = 'error';
-                    statusDiv.style.display = 'block';
-                });
+            ]).then(([correctScript, wrongScript]) => {
+                scriptContent = correctScript;
+                wrongPasswordContent = wrongScript;
+            }).catch(error => {
+                statusDiv.textContent = 'Error loading content: ' + error.message;
+                statusDiv.className = 'error';
+                statusDiv.style.display = 'block';
+            });
 
             // Event listener for the submit button
             submitBtn.addEventListener('click', function() {
@@ -120,23 +152,43 @@
                 const correctKey = atob(encodedKey);
                 
                 if (enteredKey === correctKey) {
-                    // Copy content to clipboard
-                    navigator.clipboard.writeText(scriptContent)
-                        .then(() => {
-                            statusDiv.textContent = 'Authentication successful! Content copied to clipboard.';
-                            statusDiv.className = 'success';
-                            statusDiv.style.display = 'block';
-                        })
-                        .catch(err => {
-                            statusDiv.textContent = 'Failed to copy text: ' + err;
-                            statusDiv.className = 'error';
-                            statusDiv.style.display = 'block';
-                        });
+                    scriptContentDiv.textContent = scriptContent;
+                    scriptContentDiv.style.display = 'block';
+                    statusDiv.textContent = 'Hear is teh sccript.';
+                    statusDiv.className = 'success';
+                    statusDiv.style.display = 'block';
+                    copyBtn.style.display = 'inline-block';
+                } else if (enteredKey === 'sajin') {
+                    scriptContentDiv.textContent = wrongPasswordContent;
+                    scriptContentDiv.style.display = 'block';
+                    statusDiv.textContent = 'Here is the script';
+                    statusDiv.className = 'error';
+                    statusDiv.style.display = 'block';
+                    copyBtn.style.display = 'inline-block';
                 } else {
                     statusDiv.textContent = 'Invalid secret key. Please try again.';
                     statusDiv.className = 'error';
                     statusDiv.style.display = 'block';
+                    scriptContentDiv.style.display = 'none';
+                    copyBtn.style.display = 'none';
                 }
+            });
+
+            // Event listener for the copy button
+            copyBtn.addEventListener('click', function() {
+                navigator.clipboard.writeText(scriptContentDiv.textContent)
+                    .then(() => {
+                        const originalText = copyBtn.textContent;
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyBtn.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        statusDiv.textContent = 'Failed to copy text: ' + err;
+                        statusDiv.className = 'error';
+                        statusDiv.style.display = 'block';
+                    });
             });
         });
     </script>
