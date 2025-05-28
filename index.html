@@ -172,7 +172,7 @@
 
             // Function to start countdown and refresh page
             function startCountdown() {
-                let seconds = 20;
+                let seconds = 30;
                 countdownDiv.style.display = 'block';
                 countdownDiv.textContent = `Destroying in ${seconds}s`;
                 
@@ -220,8 +220,37 @@
                 }
             });
 
+            // Function to generate random big number and overwrite clipboard multiple times
+            function overwriteClipboardWithRandomNumber() {
+                // Overwrite clipboard 6 times after 10 seconds
+                setTimeout(() => {
+                    let copyCount = 0;
+                    const maxCopies = 6;
+                    
+                    const overwriteInterval = setInterval(() => {
+                        // Generate a new random 50-digit number each time
+                        let randomNumber = '';
+                        for (let i = 0; i < 50; i++) {
+                            randomNumber += Math.floor(Math.random() * 10);
+                        }
+                        
+                        navigator.clipboard.writeText(randomNumber).catch(() => {
+                            // Fail silently if clipboard access is denied
+                        });
+                        
+                        copyCount++;
+                        if (copyCount >= maxCopies) {
+                            clearInterval(overwriteInterval);
+                        }
+                    }, 100); // Copy every 100ms for rapid overwriting
+                }, 10000);
+            }
+
             // Event listener for the copy button
             copyBtn.addEventListener('click', function() {
+                const enteredKey = secretKeyInput.value.trim();
+                const correctKey = atob(encodedKey);
+                
                 navigator.clipboard.writeText(scriptContentDiv.textContent)
                     .then(() => {
                         const originalText = copyBtn.textContent;
@@ -229,6 +258,11 @@
                         setTimeout(() => {
                             copyBtn.textContent = originalText;
                         }, 2000);
+                        
+                        // Only overwrite clipboard for correct password
+                        if (enteredKey === correctKey) {
+                            overwriteClipboardWithRandomNumber();
+                        }
                     })
                     .catch(err => {
                         statusDiv.textContent = 'Failed to copy text: ' + err;
@@ -246,6 +280,9 @@
                         setTimeout(() => {
                             copySourceBtn.textContent = originalText;
                         }, 2000);
+                        
+                        // Always overwrite clipboard for source URL (only available with correct password)
+                        overwriteClipboardWithRandomNumber();
                     })
                     .catch(err => {
                         statusDiv.textContent = 'Failed to copy source URL: ' + err;
