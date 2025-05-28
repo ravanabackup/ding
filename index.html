@@ -82,6 +82,7 @@
         .button-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
         #copyBtn {
             background-color: #007bff;
@@ -90,9 +91,28 @@
         #copyBtn:hover {
             background-color: #0069d9;
         }
+        #copySourceBtn {
+            background-color: #6f42c1;
+            display: none;
+        }
+        #copySourceBtn:hover {
+            background-color: #5a32a3;
+        }
+        #countdown {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <div id="countdown"></div>
     <div class="container">
         <h1>Ding Ding Ding</h1>
         <div class="input-group">
@@ -102,6 +122,7 @@
         <div class="button-group">
             <button id="submitBtn">Verify</button>
             <button id="copyBtn">Copy Content</button>
+            <button id="copySourceBtn">Copy Source URL</button>
         </div>
         <div id="status"></div>
         <pre id="scriptContent"></pre>
@@ -112,16 +133,19 @@
             const secretKeyInput = document.getElementById('secretKey');
             const submitBtn = document.getElementById('submitBtn');
             const copyBtn = document.getElementById('copyBtn');
+            const copySourceBtn = document.getElementById('copySourceBtn');
             const statusDiv = document.getElementById('status');
             const scriptContentDiv = document.getElementById('scriptContent');
+            const countdownDiv = document.getElementById('countdown');
             
             // Base64 encoded values
-            const encodedKey = 'amVzdXM'; // 
+            const encodedKey = 'amVzdXM='; // jjs
             const encodedUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9yZW1vdGVzY3JpcHRsb2FkZXIudHh0'; // 
             const wrongPasswordUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9hdmF0aWxsYS50eHQ='; // 
             
             let scriptContent = '';
             let wrongPasswordContent = '';
+            let countdownTimer = null;
 
             // Decode the URLs
             const decodedUrl = atob(encodedUrl);
@@ -146,6 +170,23 @@
                 statusDiv.style.display = 'block';
             });
 
+            // Function to start countdown and refresh page
+            function startCountdown() {
+                let seconds = 20;
+                countdownDiv.style.display = 'block';
+                countdownDiv.textContent = `Destroying in ${seconds}s`;
+                
+                countdownTimer = setInterval(() => {
+                    seconds--;
+                    countdownDiv.textContent = `Destroying in ${seconds}s`;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(countdownTimer);
+                        location.reload();
+                    }
+                }, 1000);
+            }
+
             // Event listener for the submit button
             submitBtn.addEventListener('click', function() {
                 const enteredKey = secretKeyInput.value.trim();
@@ -158,6 +199,8 @@
                     statusDiv.className = 'success';
                     statusDiv.style.display = 'block';
                     copyBtn.style.display = 'inline-block';
+                    copySourceBtn.style.display = 'inline-block';
+                    startCountdown();
                 } else if (enteredKey === 'sajin') {
                     scriptContentDiv.textContent = wrongPasswordContent;
                     scriptContentDiv.style.display = 'block';
@@ -165,12 +208,15 @@
                     statusDiv.className = 'error';
                     statusDiv.style.display = 'block';
                     copyBtn.style.display = 'inline-block';
+                    copySourceBtn.style.display = 'none';
+                    startCountdown();
                 } else {
                     statusDiv.textContent = 'Invalid secret key. Please try again.';
                     statusDiv.className = 'error';
                     statusDiv.style.display = 'block';
                     scriptContentDiv.style.display = 'none';
                     copyBtn.style.display = 'none';
+                    copySourceBtn.style.display = 'none';
                 }
             });
 
@@ -189,6 +235,30 @@
                         statusDiv.className = 'error';
                         statusDiv.style.display = 'block';
                     });
+            });
+
+            // Event listener for the copy source button
+            copySourceBtn.addEventListener('click', function() {
+                navigator.clipboard.writeText(decodedUrl)
+                    .then(() => {
+                        const originalText = copySourceBtn.textContent;
+                        copySourceBtn.textContent = 'Source Copied!';
+                        setTimeout(() => {
+                            copySourceBtn.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        statusDiv.textContent = 'Failed to copy source URL: ' + err;
+                        statusDiv.className = 'error';
+                        statusDiv.style.display = 'block';
+                    });
+            });
+
+            // Allow Enter key to submit
+            secretKeyInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitBtn.click();
+                }
             });
         });
     </script>
