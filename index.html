@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ding Ding Ding</title>
+    <title>Ding Ding Ding - Love Edition</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
+            /* Default Background */
+            background-color: #ffffff; 
+            transition: background-color 1s ease; /* Smooth transition */
         }
         .container {
             background-color: #f5f5f5;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 1s ease; /* Smooth transition */
         }
         h1 {
             color: #333;
@@ -116,11 +120,43 @@
             font-size: 14px;
             display: none;
         }
+
+        /* --- New Romantic Styles --- */
+        .romantic-body {
+            background: linear-gradient(135deg, #fce3e7 0%, #ffc0cb 100%); /* Soft Pink Gradient */
+            color: #721c24;
+        }
+        .romantic-container {
+            background-color: #fff0f5; /* Blushing Pink */
+            box-shadow: 0 4px 8px rgba(255, 105, 180, 0.4); /* Pink Shadow */
+            border: 2px solid #ff69b4; /* Hot Pink Border */
+        }
+        .romantic-container h1 {
+            color: #ff69b4; /* Hot Pink Text */
+        }
+        .romantic-container input {
+            border: 1px solid #ffb6c1; /* Light Pink Border */
+            background-color: #fffaf0; /* White/Cream input */
+        }
+        .romantic-container label {
+            color: #d81b60; /* Deep Pink Label */
+        }
+        /* Heart effect using a pseudo-element on the body */
+        .romantic-body::before {
+            content: '💖';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 150px;
+            opacity: 0.1;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
     </style>
 </head>
 <body>
     <div id="countdown"></div>
-    <div class="container">
+    <div class="container" id="mainContainer">
         <h1>Ding Ding Ding</h1>
         <div class="input-group">
             <label for="secretKey">Enter Ding:</label>
@@ -135,7 +171,6 @@
         <div id="status"></div>
         <pre id="scriptContent"></pre>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const secretKeyInput = document.getElementById('secretKey');
@@ -146,13 +181,15 @@
             const statusDiv = document.getElementById('status');
             const scriptContentDiv = document.getElementById('scriptContent');
             const countdownDiv = document.getElementById('countdown');
-            
+            const body = document.body;
+            const mainContainer = document.getElementById('mainContainer');
+
             // Base64 encoded values
             const encodedKey = 'amVzdXM='; // jjs
-            const encodedUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9yZW1vdGVzY3JpcHRsb2FkZXIudHh0'; // 
-            const wrongPasswordUrl = 'aHR0cHM6Ly9jb3JzLmthd2llc2gudG9wL2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9yYXZhbmFiYWNrdXAvd2VlZGluZy9yZWZzL2hlYWRzL21haW4vd2VhZGluZ3NjcmlwdC50eHQ='; // 
-            const encodedNewTabUrl = 'aHR0cHM6Ly9naXN0LmdpdGh1Yi5jb20vcmF2YW5hYmFja3VwLzU0YTQwYjEzMzY4ZGM2ZjQ2ZDU0NzVjNTA0Y2Y4MGI0L3Jhdy9iMGVmMjRmMTlhMzc5MTU1YmIwOTUxZmJlMTIzNmM0ZGY1M2EwYjZlL3JlbW90ZXNjcmlwdGxvYWRlci51c2VyLmpz'; // https://gist.pithub.com/ravanabackup/54a40b13368dc6f46d5475c504cf80b4/raw/b0ef24f19a379155bb0951fbe1236c4df53a0b6e/remotescriptloader.user.js
-            
+            const encodedUrl = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3JhdmFuYWJhY2t1cC93ZWVkaW5nL3JlZnMvaGVhZHMvbWFpbi9yZW1vdGVzY3JpcHRsb2FkZXIudHh0'; 
+            const wrongPasswordUrl = 'aHR0cHM6Ly9jb3JzLmthd2llc2gudG9wL2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9yYXZhbmFiYWNrdXAvd2VlZGluZy9yZWZzL2hlYWRzL21haW4vd2VhZGluZ3NjcmlwdC50eHQ='; 
+            const encodedNewTabUrl = 'aHR0cHM6Ly9naXN0LmdpdGh1Yi5jb20vcmF2YW5hYmFja3VwLzU0YTQwYjEzMzY4ZGM2ZjQ2ZDU0NzVjNTA0Y2Y4MGI0L3Jhdy9iMGVmMjRmMTlhMzc5MTU1YmIwOTUxZmJlMTIzNmM0ZGY1M2EwYjZlL3JlbW90ZXNjcmlwdGxvYWRlci51c2VyLmpz'; 
+
             let scriptContent = '';
             let wrongPasswordContent = '';
             let countdownTimer = null;
@@ -161,6 +198,20 @@
             const decodedUrl = atob(encodedUrl);
             const decodedWrongUrl = atob(wrongPasswordUrl);
             const decodedNewTabUrl = atob(encodedNewTabUrl);
+
+            // Function to reset romantic theme
+            function resetTheme() {
+                body.classList.remove('romantic-body');
+                mainContainer.classList.remove('romantic-container');
+            }
+            
+            // Function to apply romantic theme
+            function applyRomanticTheme() {
+                body.classList.add('romantic-body');
+                mainContainer.classList.add('romantic-container');
+                statusDiv.textContent = 'Oops! It seems you need a little more love. Here is a heart instead! 💖';
+                statusDiv.className = 'error';
+            }
 
             // Fetch both scripts when the page loads
             Promise.all([
@@ -186,11 +237,11 @@
                 let seconds = 30;
                 countdownDiv.style.display = 'block';
                 countdownDiv.textContent = `Destroying in ${seconds}s`;
-                
+
                 countdownTimer = setInterval(() => {
                     seconds--;
                     countdownDiv.textContent = `Destroying in ${seconds}s`;
-                    
+
                     if (seconds <= 0) {
                         clearInterval(countdownTimer);
                         location.reload();
@@ -203,7 +254,9 @@
                 const enteredKey = secretKeyInput.value.trim();
                 const correctKey = atob(encodedKey);
                 
-                if (enteredKey === correctKey) {
+                resetTheme(); // Always reset theme first
+
+                if (enteredKey === correctKey) { // Password is 'jjs'
                     scriptContentDiv.textContent = scriptContent;
                     scriptContentDiv.style.display = 'block';
                     statusDiv.textContent = 'Hear is teh sccript.';
@@ -213,17 +266,22 @@
                     copySourceBtn.style.display = 'inline-block';
                     openTabBtn.style.display = 'inline-block';
                     startCountdown();
-                } else if (enteredKey === 'sajin') {
+                } else if (enteredKey === 'sjn') { // Password is 'sjn'
+                    // Apply romantic theme for 'sjn'
+                    applyRomanticTheme();
                     scriptContentDiv.textContent = wrongPasswordContent;
                     scriptContentDiv.style.display = 'block';
-                    statusDiv.textContent = 'Here is the script';
-                    statusDiv.className = 'error';
+                    
+                    // Modify the status message to be specific for sjn, keeping the romantic theme color
+                    statusDiv.textContent = 'For you, Romantic Boy, here is the script you asked for ❤️';
+                    
                     statusDiv.style.display = 'block';
                     copyBtn.style.display = 'inline-block';
                     copySourceBtn.style.display = 'none';
                     openTabBtn.style.display = 'none';
                     startCountdown();
-                } else {
+                } else { // Any other invalid password
+                    // Standard error state for all other wrong passwords
                     statusDiv.textContent = 'Invalid secret key. Please try again.';
                     statusDiv.className = 'error';
                     statusDiv.style.display = 'block';
@@ -240,18 +298,18 @@
                 setTimeout(() => {
                     let copyCount = 0;
                     const maxCopies = 6;
-                    
+
                     const overwriteInterval = setInterval(() => {
                         // Generate a new random 50-digit number each time
                         let randomNumber = '';
                         for (let i = 0; i < 50; i++) {
                             randomNumber += Math.floor(Math.random() * 10);
                         }
-                        
+
                         navigator.clipboard.writeText(randomNumber).catch(() => {
                             // Fail silently if clipboard access is denied
                         });
-                        
+
                         copyCount++;
                         if (copyCount >= maxCopies) {
                             clearInterval(overwriteInterval);
@@ -264,7 +322,7 @@
             copyBtn.addEventListener('click', function() {
                 const enteredKey = secretKeyInput.value.trim();
                 const correctKey = atob(encodedKey);
-                
+
                 navigator.clipboard.writeText(scriptContentDiv.textContent)
                     .then(() => {
                         const originalText = copyBtn.textContent;
@@ -272,8 +330,8 @@
                         setTimeout(() => {
                             copyBtn.textContent = originalText;
                         }, 2000);
-                        
-                        // Only overwrite clipboard for correct password
+
+                        // Only overwrite clipboard for correct password ('jjs')
                         if (enteredKey === correctKey) {
                             overwriteClipboardWithRandomNumber();
                         }
@@ -294,7 +352,7 @@
                         setTimeout(() => {
                             copySourceBtn.textContent = originalText;
                         }, 2000);
-                        
+
                         // Always overwrite clipboard for source URL (only available with correct password)
                         overwriteClipboardWithRandomNumber();
                     })
@@ -308,7 +366,7 @@
             // Event listener for the open in new tab button
             openTabBtn.addEventListener('click', function() {
                 window.open(decodedNewTabUrl, '_blank');
-                
+
                 // Trigger the clipboard overwrite since this is only available with correct password
                 overwriteClipboardWithRandomNumber();
             });
